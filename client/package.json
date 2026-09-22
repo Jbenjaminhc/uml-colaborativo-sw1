@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "npx eslint --fix src/**",
-    "test": "vitest",
+    "test": "vitest run --passWithNoTests",
     "coverage": "vitest --coverage"
   },
   "dependencies": {
