@@ -1,4 +1,7 @@
 import { Logout } from '@mui/icons-material';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { useTheme } from '@mui/material/styles';
 import {
   Avatar,
   Divider,
@@ -8,13 +11,17 @@ import {
   MenuItem,
   Tooltip,
 } from '@mui/material';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/UML2.png';
+import { ColorModeContext } from '../../App';
 
 function DashHeader() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+
+  const theme = useTheme();
+  const colorMode = useContext(ColorModeContext);
 
   const navigate = useNavigate();
   const username = localStorage.getItem('username');
@@ -27,8 +34,8 @@ function DashHeader() {
     setAnchorEl(null);
   };
 
-  // TODO: implement handleProfile and profile page
   const handleProfile = () => {
+    navigate('/profile');
     handleClose();
   };
 
@@ -42,12 +49,15 @@ function DashHeader() {
 
   return (
     <>
-      <div className="header">
+      <div className="header" style={{ backgroundColor: theme.palette.mode === 'dark' ? 'rgba(18, 18, 18, 0.85)' : 'rgba(255, 255, 255, 0.85)', borderBottom: `1px solid ${theme.palette.divider}` }}>
         <div className="left">
           <img src={logo} className="logo" alt="logo" />
         </div>
         <div className="right">
-          <Tooltip title="Account">
+          <IconButton sx={{ ml: 1, mr: 1 }} onClick={colorMode.toggleColorMode} color="inherit">
+            {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+          </IconButton>
+          <Tooltip title="Cuenta">
             <IconButton
               onClick={handleClick}
               size="small"
@@ -78,7 +88,7 @@ function DashHeader() {
           <ListItemIcon>
             <Logout fontSize="small" />
           </ListItemIcon>
-          Logout
+          Cerrar sesión
         </MenuItem>
       </Menu>
     </>

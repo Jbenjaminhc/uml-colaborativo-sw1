@@ -22,6 +22,8 @@ export type DataType =
   | 'boolean'
   | 'string'
   | 'char'
+  | 'date'
+  | 'datetime'
   | 'void';
 
 export type Visibility = '+' | '—' | '#';
@@ -92,3 +94,30 @@ export type RelationshipData = {
   srcMultiplicity: string;
   tgtMultiplicity: string;
 };
+
+export interface ActiveUser {
+  userId: string;
+  username: string;
+  socketId: string;
+  color: string;
+  activity?: {
+    action: string;
+    target?: string;
+  };
+}
+
+export interface CollaboratorInfo {
+  userId: string;
+  email: string;
+  username: string;
+  role: 'editor' | 'viewer';
+}
+
+export interface ChatMessage {
+  id: string;
+  userId: string;
+  username: string;
+  color: string;
+  text: string;
+  timestamp: number;
+}

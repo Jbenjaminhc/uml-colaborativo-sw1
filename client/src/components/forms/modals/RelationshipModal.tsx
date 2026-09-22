@@ -7,16 +7,22 @@ import {
   TextField,
   Tooltip,
   Typography,
+  Paper,
 } from '@mui/material';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Connection } from 'reactflow';
 import { useRelationshipsDispatch } from '../../../context/RelationshipsContext';
 import { Relationship, RelationshipType } from '../../../types';
 import { AlertType } from '../../alert/AlertContext';
 import useAlert from '../../alert/useAlert';
 import LongRelationshipInput from '../inputs/LongRelationshipInput';
 import ShortRelationshipInput from '../inputs/ShortRelationshipInput';
+
+import { useSocket } from '../../../context/SocketContext';
+import { useEntities } from '../../../context/EntitiesContext';
+import { useHistory } from '../../../context/HistoryContext';
 
 const relationshipTypes: RelationshipType[] = [
   'Implementation',
@@ -79,15 +85,22 @@ const getContentByType = (
 type RelationshipModalProps = {
   open: boolean;
   handleClose: () => void;
+  initialConnection?: Connection | null;
 };
 
-const relationshipHelperText = `Relationships are the connections between classes. 
-        They contain a type, source, and target. The source and target are the classes that are connected by the relationship.`;
+const relationshipHelperText = `Las relaciones son las conexiones entre clases. 
+        Contienen un tipo, origen y destino. El origen y destino son las clases que están conectadas por la relación.`;
 
-function RelationshipModal({ open, handleClose }: RelationshipModalProps) {
+function RelationshipModal({
+  open,
+  handleClose,
+  initialConnection,
+}: RelationshipModalProps) {
   const [type, setType] = useState<RelationshipType | null>(null);
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
+  const [sourceHandle, setSourceHandle] = useState<string | null>(null);
+  const [targetHandle, setTargetHandle] = useState<string | null>(null);
   const [label, setLabel] = useState('');
   const [srcMultiplicity, setSrcMultiplicity] = useState('');
   const [tgtMultiplicity, setTgtMultiplicity] = useState('');
@@ -97,11 +110,36 @@ function RelationshipModal({ open, handleClose }: RelationshipModalProps) {
   const relationshipsDispatch = useRelationshipsDispatch();
   const { diagramId } = useParams();
   const { setAlert } = useAlert();
+  const { emitRelationshipCreated, emitRelationshipDeleted } = useSocket();
+  const { pushCommand } = useHistory();
+  const entities = useEntities();
+
+  useEffect(() => {
+    if (
+      initialConnection &&
+      initialConnection.source &&
+      initialConnection.target
+    ) {
+      const sourceEntity = entities.find(
+        (e) => e.id === initialConnection.source
+      );
+      const targetEntity = entities.find(
+        (e) => e.id === initialConnection.target
+      );
+
+      if (sourceEntity) setSource(sourceEntity.data.name);
+      if (targetEntity) setTarget(targetEntity.data.name);
+      if (initialConnection.sourceHandle) setSourceHandle(initialConnection.sourceHandle);
+      if (initialConnection.targetHandle) setTargetHandle(initialConnection.targetHandle);
+    }
+  }, [initialConnection, entities]);
 
   const close = () => {
     setType(null);
     setSource('');
     setTarget('');
+    setSourceHandle(null);
+    setTargetHandle(null);
     setLabel('');
     setSrcMultiplicity('');
     setTgtMultiplicity('');
@@ -114,8 +152,10 @@ function RelationshipModal({ open, handleClose }: RelationshipModalProps) {
     value: RelationshipType | null
   ) => {
     setType(value);
-    setSource('');
-    setTarget('');
+    if (!initialConnection) {
+      setSource('');
+      setTarget('');
+    }
     setLabel('');
     setSrcMultiplicity('');
     setTgtMultiplicity('');
@@ -127,7 +167,7 @@ function RelationshipModal({ open, handleClose }: RelationshipModalProps) {
     setErrorMessage(undefined);
     setLoading(true);
 
-    const relationship = {
+    const relationship: any = {
       type,
       source,
       target,
@@ -135,6 +175,9 @@ function RelationshipModal({ open, handleClose }: RelationshipModalProps) {
       srcMultiplicity,
       tgtMultiplicity,
     };
+
+    if (sourceHandle) relationship.sourceHandle = sourceHandle;
+    if (targetHandle) relationship.targetHandle = targetHandle;
 
     try {
       const res = await axios.post(
@@ -146,10 +189,28 @@ function RelationshipModal({ open, handleClose }: RelationshipModalProps) {
         type: 'ADD_RELATIONSHIP',
         payload: newRelationship,
       });
-      setAlert('Relationship created successfully', AlertType.SUCCESS);
+      emitRelationshipCreated(newRelationship);
+
+      pushCommand({
+        undo: async () => {
+          await axios.delete(`/api/relationship/${newRelationship.id}?diagramId=${diagramId}`).catch(() => null);
+          relationshipsDispatch({ type: 'DELETE_RELATIONSHIP', id: newRelationship.id });
+          emitRelationshipDeleted(newRelationship.id);
+        },
+        redo: async () => {
+          const payloadWithId = { ...relationship, id: newRelationship.id };
+          const resRedo = await axios.post(`/api/relationship?diagramId=${diagramId}`, payloadWithId).catch(() => null);
+          if (resRedo) {
+            relationshipsDispatch({ type: 'ADD_RELATIONSHIP', payload: resRedo.data });
+            emitRelationshipCreated(resRedo.data);
+          }
+        }
+      });
+
+      setAlert('Relación creada exitosamente', AlertType.SUCCESS);
       close();
     } catch (err: any) {
-      setErrorMessage(err.response.data.message);
+      setErrorMessage(err.response?.data?.message || 'Error');
     }
     setLoading(false);
   };
@@ -161,13 +222,14 @@ function RelationshipModal({ open, handleClose }: RelationshipModalProps) {
       aria-labelledby="Relationship Form"
       aria-describedby="Specify the contents of a relationship"
     >
-      <form
+      <Paper
+        component="form"
         className="modal-content relationship-content"
         onSubmit={handleSubmit}
       >
         <div>
           <h2>
-            Create Relationship&nbsp;
+            Crear Relación&nbsp;
             <Tooltip title={relationshipHelperText}>
               <HelpOutlineIcon fontSize="small" />
             </Tooltip>
@@ -181,7 +243,7 @@ function RelationshipModal({ open, handleClose }: RelationshipModalProps) {
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Type"
+                label="Tipo"
                 variant="standard"
                 required
                 error={errorMessage !== undefined}
@@ -205,13 +267,13 @@ function RelationshipModal({ open, handleClose }: RelationshipModalProps) {
         </div>
         <div className="buttons">
           <Button variant="text" onClick={close} disabled={loading}>
-            Cancel
+            Cancelar
           </Button>
           <Button variant="text" type="submit" disabled={loading}>
-            OK
+            Aceptar
           </Button>
         </div>
-      </form>
+      </Paper>
     </Modal>
   );
 }
@@ -232,10 +294,13 @@ export function RelationshipEditModal({
   const [tgtMultiplicity, setTgtMultiplicity] = useState('');
   const [errorMessage, setErrorMessage] = useState<string>();
   const [loading, setLoading] = useState(false);
+  const [initialRelationship, setInitialRelationship] = useState<Relationship | null>(null);
 
   const relationshipsDispatch = useRelationshipsDispatch();
   const { diagramId } = useParams();
   const { setAlert } = useAlert();
+  const { emitRelationshipUpdated } = useSocket();
+  const { pushCommand } = useHistory();
 
   useEffect(() => {
     const getRelationship = async () => {
@@ -245,13 +310,16 @@ export function RelationshipEditModal({
           `/api/relationship/${id}?diagramId=${diagramId}`
         );
         const relationship = res.data as Relationship;
+        setInitialRelationship(relationship);
         setSource(relationship.source);
         setTarget(relationship.target);
         setLabel(relationship.data?.label || '');
         setSrcMultiplicity(relationship.data?.srcMultiplicity || '');
         setTgtMultiplicity(relationship.data?.tgtMultiplicity || '');
       } catch (err: any) {
-        setErrorMessage('Server Error. Please try again or report this bug.');
+        setErrorMessage(
+          'Error del servidor. Por favor, inténtalo de nuevo o reporta este error.'
+        );
       }
       setLoading(false);
     };
@@ -294,10 +362,39 @@ export function RelationshipEditModal({
         type: 'UPDATE_RELATIONSHIP',
         payload: updatedRelationship,
       });
-      setAlert('Relationship updated successfully', AlertType.SUCCESS);
+      emitRelationshipUpdated(updatedRelationship);
+
+      if (initialRelationship) {
+        pushCommand({
+          undo: async () => {
+            const undoPayload = {
+              type: initialRelationship.type,
+              source: initialRelationship.source,
+              target: initialRelationship.target,
+              label: initialRelationship.data?.label,
+              srcMultiplicity: initialRelationship.data?.srcMultiplicity,
+              tgtMultiplicity: initialRelationship.data?.tgtMultiplicity,
+            };
+            const resUndo = await axios.put(`/api/relationship/${id}?diagramId=${diagramId}`, undoPayload).catch(() => null);
+            if (resUndo) {
+              relationshipsDispatch({ type: 'UPDATE_RELATIONSHIP', payload: resUndo.data });
+              emitRelationshipUpdated(resUndo.data);
+            }
+          },
+          redo: async () => {
+            const resRedo = await axios.put(`/api/relationship/${id}?diagramId=${diagramId}`, relationship).catch(() => null);
+            if (resRedo) {
+              relationshipsDispatch({ type: 'UPDATE_RELATIONSHIP', payload: resRedo.data });
+              emitRelationshipUpdated(resRedo.data);
+            }
+          }
+        });
+      }
+
+      setAlert('Relación actualizada exitosamente', AlertType.SUCCESS);
       close();
     } catch (err: any) {
-      setErrorMessage(err.response.data.message);
+      setErrorMessage(err.response?.data?.message || 'Error');
     }
     setLoading(false);
   };
@@ -309,13 +406,14 @@ export function RelationshipEditModal({
       aria-labelledby="Edit Relationship Form"
       aria-describedby="Edit the contents of a relationship"
     >
-      <form
+      <Paper
+        component="form"
         className="modal-content relationship-content"
         onSubmit={handleSubmit}
       >
         <div>
           <h2>
-            Edit Relationship&nbsp;
+            Editar Relación&nbsp;
             <Tooltip title={relationshipHelperText}>
               <HelpOutlineIcon fontSize="small" />
             </Tooltip>
@@ -341,13 +439,13 @@ export function RelationshipEditModal({
         </div>
         <div className="buttons">
           <Button variant="text" onClick={close} disabled={loading}>
-            Cancel
+            Cancelar
           </Button>
           <Button variant="text" type="submit" disabled={loading}>
-            OK
+            Aceptar
           </Button>
         </div>
-      </form>
+      </Paper>
     </Modal>
   );
 }

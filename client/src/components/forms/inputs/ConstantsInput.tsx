@@ -26,7 +26,7 @@ function ConstantField({
         }
       />
       <TextField
-        label="Name"
+        label="Nombre"
         variant="standard"
         value={constant.name}
         onChange={(e) =>
@@ -35,7 +35,7 @@ function ConstantField({
         required
         sx={{ width: 245 }}
       />
-      <Tooltip title="Delete" placement="right">
+      <Tooltip title="Eliminar" placement="right">
         <IconButton
           className="remove-button"
           aria-label="delete constant"
@@ -104,7 +104,7 @@ function ConstantsInput({ constants, setConstants }: ConstantsInputProps) {
         startIcon={<AddRoundedIcon />}
         onClick={addConstant}
       >
-        Add
+        Añadir
       </Button>
     </div>
   );

@@ -12,6 +12,10 @@ export type EntityAction =
   | {
       type: 'SET_ENTITIES';
       payload: Entity[];
+    }
+  | {
+      type: 'UPDATE_ENTITY_POSITION';
+      payload: { id: string; position: { x: number; y: number } };
     };
 
 export default function entitiesReducer(
@@ -33,6 +37,12 @@ export default function entitiesReducer(
       ) as Entity[];
     case 'SET_ENTITIES':
       return action.payload;
+    case 'UPDATE_ENTITY_POSITION':
+      return entities.map((entity) =>
+        entity.id === action.payload.id
+          ? { ...entity, position: action.payload.position }
+          : entity
+      );
 
     default:
       throw new Error(`Unhandled action type: ${action}`);

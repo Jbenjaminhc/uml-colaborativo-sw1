@@ -4,9 +4,12 @@ import { IconButton, Tooltip } from '@mui/material';
 import axios from 'axios';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useReactFlow } from 'reactflow';
 import { useRelationshipsDispatch } from '../../../context/RelationshipsContext';
 import { AlertType } from '../../alert/AlertContext';
 import useAlert from '../../alert/useAlert';
+
+import { useSocket } from '../../../context/SocketContext';
 
 type Props = {
   labelX: number;
@@ -21,20 +24,15 @@ function RelationshipToolBar({ labelX, labelY, id, openEditModal }: Props) {
   const relationshipsDispatch = useRelationshipsDispatch();
   const { diagramId } = useParams();
   const { setAlert } = useAlert();
+  const { emitRelationshipDeleted } = useSocket();
 
-  const handleDelete = async () => {
-    setLoading(true);
-    try {
-      await axios.delete(`/api/relationship/${id}?diagramId=${diagramId}`);
-      relationshipsDispatch({
-        type: 'DELETE_RELATIONSHIP',
-        id,
-      });
-      setAlert('Relationship successfully deleted', AlertType.SUCCESS);
-    } catch (e) {
-      setAlert('Could not delete relationship. Try again', AlertType.ERROR);
+  const { deleteElements, getEdge } = useReactFlow();
+
+  const handleDelete = () => {
+    const edge = getEdge(id);
+    if (edge) {
+      deleteElements({ edges: [edge] });
     }
-    setLoading(false);
   };
 
   return (

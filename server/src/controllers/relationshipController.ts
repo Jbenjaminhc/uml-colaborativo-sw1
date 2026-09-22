@@ -41,6 +41,7 @@ const createRelationship = async (data: unknown, diagramId: string) => {
 
   try {
     const relationship = new RelationshipModel({
+      ...((data as any).id ? { _id: (data as any).id } : {}),
       type: validatedData.type,
       diagramId,
       source: validatedData.source,
@@ -135,7 +136,7 @@ const deleteRelationship = async (
     diagramId,
   });
   if (!relationship) {
-    throw new Error('Could not find relationship');
+    // Ya fue eliminada
   }
 };
 

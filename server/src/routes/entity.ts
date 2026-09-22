@@ -17,12 +17,13 @@ const router = express.Router();
 router.put('/:id/position', withAuth, async (req, res) => {
   const { id } = req.params;
   const position = req.body;
+  console.log(`[PUT /:id/position] id=${id}, position=`, position);
   try {
     await updatePosition(id, req.query.diagramId as string, position);
-    res.status(204).json({ message: 'Successfully updated position' });
+    res.status(200).json({ message: 'Successfully updated position' });
   } catch (e) {
     res.status(400).json({ message: getErrorMessage(e) });
-    console.log(getErrorMessage(e));
+    console.log(`[PUT /:id/position] ERROR:`, getErrorMessage(e), e);
   }
 });
 
@@ -38,7 +39,7 @@ router.delete('/:id', withAuth, async (req, res) => {
   const { id } = req.params;
   try {
     await deleteEntity(id, req.query.diagramId as string);
-    res.status(204).json({ message: 'OK' });
+    res.status(200).json({ message: 'OK' });
   } catch (e) {
     res.status(400).json({ message: getErrorMessage(e) });
     console.log(e);

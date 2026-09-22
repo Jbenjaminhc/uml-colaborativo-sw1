@@ -7,6 +7,13 @@ const diagramSchema = zod_1.z.object({
     name: zod_1.z.string(),
     userId: zod_1.z.string(),
     isPublic: zod_1.z.boolean(),
+    collaborators: zod_1.z
+        .array(zod_1.z.object({
+        userId: zod_1.z.any(),
+        role: zod_1.z.enum(['editor', 'viewer']),
+        addedAt: zod_1.z.date().optional(),
+    }))
+        .optional(),
     createdAt: zod_1.z.date().optional(),
     updatedAt: zod_1.z.date().optional(),
 });
@@ -19,6 +26,13 @@ const schema = new mongoose_1.Schema({
         required: true,
         default: false,
     },
+    collaborators: [
+        {
+            userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
+            role: { type: String, enum: ['editor', 'viewer'], default: 'editor' },
+            addedAt: { type: Date, default: Date.now },
+        },
+    ],
 }, { timestamps: true });
 const DiagramModel = (0, mongoose_1.model)('Diagram', schema);
 exports.DiagramModel = DiagramModel;

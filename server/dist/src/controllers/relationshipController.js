@@ -31,6 +31,7 @@ const createRelationship = async (data, diagramId) => {
     await (0, relationshipService_1.validateDuplicateRelationship)(diagramId, validatedData.type, validatedData.source, validatedData.target);
     try {
         const relationship = new relationship_model_1.RelationshipModel({
+            ...(data.id ? { _id: data.id } : {}),
             type: validatedData.type,
             diagramId,
             source: validatedData.source,
@@ -93,7 +94,7 @@ const deleteRelationship = async (relationshipId, diagramId) => {
         diagramId,
     });
     if (!relationship) {
-        throw new Error('Could not find relationship');
+        // Ya fue eliminada
     }
 };
 exports.deleteRelationship = deleteRelationship;

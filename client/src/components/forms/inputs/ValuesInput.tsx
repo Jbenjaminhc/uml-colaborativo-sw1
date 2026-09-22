@@ -15,7 +15,7 @@ function ValueField({ value, updateValue, removeValue }: ValueFieldProps) {
   return (
     <div className="field-line">
       <TextField
-        label="Name"
+        label="Nombre"
         variant="standard"
         value={value.name}
         onChange={(e) => updateValue(value.id, e.target.value)}
@@ -68,7 +68,7 @@ export default function ValuesInput({ values, setValues }: ValuesInputProps) {
         />
       ))}
       <Button variant="text" startIcon={<AddRoundedIcon />} onClick={addValue}>
-        Add
+        Añadir
       </Button>
     </div>
   );

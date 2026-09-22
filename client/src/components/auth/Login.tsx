@@ -1,5 +1,5 @@
 import LoadingButton from '@mui/lab/LoadingButton';
-import { TextField, Typography } from '@mui/material';
+import { TextField, Typography, Paper, Box, useTheme } from '@mui/material';
 import axios from 'axios';
 import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -15,6 +15,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const theme = useTheme();
   setDocumentTitle('Login');
 
   const handleLogin = async (event: React.FormEvent) => {
@@ -39,7 +40,7 @@ function Login() {
             if (err.response.data.message === 'User not verified') {
               // eslint-disable-next-line no-param-reassign
               err.response.data.message =
-                'User not verified. Please check your email for a verification link.';
+                'Usuario no verificado. Por favor revisa tu correo para el enlace de verificación.';
               axios.get(
                 `/api/auth/resend-verification-email/${email.current?.value}`
               );
@@ -49,11 +50,11 @@ function Login() {
           });
       } catch (err) {
         setError(true);
-        setErrorMessage('Server is not responding');
+        setErrorMessage('El servidor no responde');
       }
     } else {
       setError(true);
-      setErrorMessage('Please enter a diagram ID');
+      setErrorMessage('Por favor ingresa tu correo');
     }
     setLoading(false);
   };
@@ -63,60 +64,73 @@ function Login() {
   };
 
   return (
-    <div className="start-menu">
-      <div>
-        <img src={logo} className="logo" alt="logo" />
-      </div>
-      <form className="start-form" onSubmit={handleLogin}>
-        <TextField
-          inputRef={email}
-          label="Email"
-          variant="standard"
-          type="email"
-          fullWidth
-          required
-          error={error}
-          helperText={error ? errorMessage : ''}
-        />
-        <TextField
-          inputRef={password}
-          label="Password"
-          variant="standard"
-          type="password"
-          fullWidth
-          required
-          error={error}
-        />
+    <Box className="auth-page" sx={{ backgroundColor: 'background.default' }}>
+      <Paper className="start-menu" elevation={3}>
+        <div>
+          <img src={logo} className="logo" alt="UML2Code Logo" />
+          <Typography variant="h5" fontWeight="bold" sx={{ mt: 1, mb: 2 }}>
+            ¡Bienvenido de nuevo!
+          </Typography>
+        </div>
+        <form className="start-form" onSubmit={handleLogin}>
+          <TextField
+            inputRef={email}
+            label="Correo Electrónico"
+            variant="outlined"
+            type="email"
+            fullWidth
+            required
+            error={error}
+            helperText={error ? errorMessage : ''}
+            InputProps={{ sx: { borderRadius: '12px' } }}
+          />
+          <TextField
+            inputRef={password}
+            label="Contraseña"
+            variant="outlined"
+            type="password"
+            fullWidth
+            required
+            error={error}
+            InputProps={{ sx: { borderRadius: '12px' } }}
+          />
+          <LoadingButton
+            type="submit"
+            variant="contained"
+            size="large"
+            fullWidth
+            loading={loading}
+            loadingIndicator="Cargando…"
+            sx={{ borderRadius: '12px', py: 1.2, mt: 1, textTransform: 'none', fontSize: '1.05rem', fontWeight: 'bold' }}
+          >
+            Iniciar Sesión
+          </LoadingButton>
+          <Typography variant="body2" color="text.secondary">
+            ¿Olvidaste tu contraseña?{' '}
+            <Link to="/send-reset-password" style={{ color: theme.palette.primary.main, textDecoration: 'none', fontWeight: 500 }}>
+              Restablécela aquí
+            </Link>
+          </Typography>
+        </form>
+        
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', color: theme.palette.text.secondary }}>
+          <div style={{ flex: 1, height: '1px', backgroundColor: theme.palette.divider }} />
+          <span style={{ fontSize: '0.85rem', textTransform: 'uppercase' }}>O</span>
+          <div style={{ flex: 1, height: '1px', backgroundColor: theme.palette.divider }} />
+        </div>
+
         <LoadingButton
-          type="submit"
-          variant="contained"
+          variant="outlined"
           size="large"
           fullWidth
           loading={loading}
-          loadingIndicator="Loading…"
+          onClick={handleSignup}
+          sx={{ borderRadius: '12px', py: 1.2, textTransform: 'none', fontSize: '1.05rem', fontWeight: 'bold' }}
         >
-          Login
+          Crear cuenta nueva
         </LoadingButton>
-        <Typography variant="subtitle1">
-          Forgot password? Reset password{' '}
-          <Link to="/send-reset-password">here</Link>
-        </Typography>
-      </form>
-      <span>-- or --</span>
-      <LoadingButton
-        variant="contained"
-        size="large"
-        fullWidth
-        loading={loading}
-        loadingIndicator="Loading…"
-        onClick={handleSignup}
-      >
-        Sign up
-      </LoadingButton>
-      <Typography variant="overline">
-        Developed by Jonathan Laksana 2023
-      </Typography>
-    </div>
+      </Paper>
+    </Box>
   );
 }
 

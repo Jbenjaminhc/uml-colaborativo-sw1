@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import pick from 'lodash.pick';
+import { isValidObjectId } from 'mongoose';
 import { z } from 'zod';
 import { DiagramModel } from '../models/diagram.model';
 import { EntityModel } from '../models/entity.model';
@@ -90,19 +91,33 @@ const validateSourceAndTarget = async (
 ) => {
   let sourceEntity;
   let targetEntity;
+
   if (isHandleUpdate) {
     sourceEntity = await EntityModel.findById(sourceName);
     targetEntity = await EntityModel.findById(targetName);
   } else {
-    sourceEntity = await EntityModel.findOne({
-      diagramId,
-      'data.name': sourceName,
-    });
-    targetEntity = await EntityModel.findOne({
-      diagramId,
-      'data.name': targetName,
-    });
+    // If the frontend provided IDs instead of names (e.g. during Undo operations)
+    if (isValidObjectId(sourceName)) {
+      sourceEntity = await EntityModel.findOne({ diagramId, _id: sourceName });
+    }
+    if (!sourceEntity) {
+      sourceEntity = await EntityModel.findOne({
+        diagramId,
+        'data.name': sourceName,
+      });
+    }
+
+    if (isValidObjectId(targetName)) {
+      targetEntity = await EntityModel.findOne({ diagramId, _id: targetName });
+    }
+    if (!targetEntity) {
+      targetEntity = await EntityModel.findOne({
+        diagramId,
+        'data.name': targetName,
+      });
+    }
   }
+
   if (!sourceEntity || !targetEntity) {
     throw new Error('Invalid source or target');
   }

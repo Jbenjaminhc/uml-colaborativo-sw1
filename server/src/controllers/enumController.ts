@@ -42,6 +42,8 @@ const createEnum = async (data: unknown, diagramId: string) => {
 
   try {
     const entity = new EntityModel({
+      ...((data as any).id ? { _id: (data as any).id } : {}),
+      ...((data as any).position ? { position: (data as any).position } : {}),
       diagramId,
       type: 'enum',
       data: {

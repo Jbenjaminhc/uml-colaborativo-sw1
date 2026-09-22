@@ -1,9 +1,10 @@
+import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import {
   BaseEdge,
   EdgeLabelRenderer,
   EdgeProps,
-  getBezierPath,
+  getSmoothStepPath,
 } from 'reactflow';
 import { RelationshipEditModal } from '../../forms/modals/RelationshipModal';
 import RelationshipToolBar from './RelationshipToolBar';
@@ -18,7 +19,10 @@ export function InheritanceEdgeView({
   sourcePosition,
   targetPosition,
 }: EdgeProps) {
-  const [edgePath] = getBezierPath({
+  const theme = useTheme();
+  const edgeColor = theme.palette.mode === 'dark' ? '#b1b1b7' : '#555';
+  const emptyFill = theme.palette.mode === 'dark' ? theme.palette.background.default : '#eee';
+  const [edgePath] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -53,11 +57,11 @@ export function InheritanceEdgeView({
               C4.78044 19.9999 4.34198 19.9999 4.08198 19.8154
               C3.85505 19.6543 3.70551 19.4059 3.66932 19.13
               C3.62785 18.8138 3.833 18.4263 4.2433 17.6513Z"
-              stroke="#555"
+              stroke={edgeColor}
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              fill="#eee"
+              fill={emptyFill}
             />
           </marker>
         </defs>
@@ -79,7 +83,10 @@ function InheritanceEdge({
   targetPosition,
   selected,
 }: EdgeProps) {
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const theme = useTheme();
+  const edgeColor = theme.palette.mode === 'dark' ? '#b1b1b7' : '#555';
+  const emptyFill = theme.palette.mode === 'dark' ? theme.palette.background.default : '#eee';
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,

@@ -1,14 +1,14 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import { Autocomplete, TextField } from '@mui/material';
 import { useEntities } from '../../../context/EntitiesContext';
-import { types } from './TypeSelect';
+import { attributeTypes, returnTypes } from './TypeSelect';
 
 type GroupSelectProps = {
   option: string;
   setOption: (option: string) => void;
   label: string;
   width?: number;
-  includePrimitives?: boolean;
+  primitiveType?: 'attribute' | 'return';
   includeClasses?: boolean;
   includeInterfaces?: boolean;
   includeEnums?: boolean;
@@ -25,7 +25,7 @@ function GroupSelect({
   setOption,
   label,
   width = 250,
-  includePrimitives = false,
+  primitiveType,
   includeClasses = false,
   includeInterfaces = false,
   includeEnums = false,
@@ -48,11 +48,12 @@ function GroupSelect({
         .filter((e) => e.type === 'enum')
         .map((e) => ({ type: e.type, name: e.data.name }))
     : [];
-  const prims = includePrimitives
-    ? types
-        .map((t) => ({ type: 'primitive', name: t }))
-        .concat([{ type: 'primitive', name: 'void' }])
-    : [];
+  const prims =
+    primitiveType === 'attribute'
+      ? attributeTypes.map((t) => ({ type: 'primitive', name: t }))
+      : primitiveType === 'return'
+      ? returnTypes.map((t) => ({ type: 'primitive', name: t }))
+      : [];
 
   const options = [...prims, ...classes, ...interfaces, ...enums];
 
@@ -61,11 +62,18 @@ function GroupSelect({
       id={`${label}-select`}
       freeSolo={!restrictOptions}
       options={options}
-      value={{ name: option, type: undefined }}
+      value={option ? { name: option, type: undefined } : null}
+      isOptionEqualToValue={(opt, val) => {
+        const optName = typeof opt === 'string' ? opt : opt.name;
+        const valName = typeof val === 'string' ? val : val.name;
+        return optName === valName;
+      }}
       onInputChange={(e, value) => {
         setOption(value);
       }}
-      getOptionLabel={(opt) => (opt as GroupOption).name}
+      getOptionLabel={(opt) =>
+        typeof opt === 'string' ? opt : (opt as GroupOption).name
+      }
       groupBy={(opt) => opt.type || ''}
       renderInput={(params) => (
         <TextField

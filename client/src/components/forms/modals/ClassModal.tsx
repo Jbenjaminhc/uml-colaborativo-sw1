@@ -6,6 +6,7 @@ import {
   Checkbox,
   FormControlLabel,
   Modal,
+  Paper,
   Tab,
   TextField,
   Tooltip,
@@ -15,6 +16,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useEntitiesDispatch } from '../../../context/EntitiesContext';
 import '../../../styles/FormModals.css';
+import { useSocket } from '../../../context/SocketContext';
+import { useHistory } from '../../../context/HistoryContext';
 import { Attribute, Constant, Entity, Klass, Method } from '../../../types';
 import { AlertType } from '../../alert/AlertContext';
 import useAlert from '../../alert/useAlert';
@@ -31,9 +34,9 @@ type ClassModalProps = {
   data?: Klass;
 };
 
-const classHelperText = `Classes are the building blocks of your program. 
-  They contain a name and could have constants, attributes, and methods. If abstract, check the Abstract box.\n
-  Notes: Constants are always static, attributes are recommended as private, and you cannot specify parameters for methods.`;
+const classHelperText = `Las clases son los componentes básicos de su programa. 
+  Contienen un nombre y pueden tener constantes, atributos y métodos. Si es abstracta, marque la casilla Abstracta.\n
+  Notas: Las constantes siempre son estáticas, se recomienda que los atributos sean privados y no puede especificar parámetros para los métodos.`;
 
 function ClassModal({ open, handleClose, id, data }: ClassModalProps) {
   const [tabValue, setTabValue] = useState('1');
@@ -45,12 +48,16 @@ function ClassModal({ open, handleClose, id, data }: ClassModalProps) {
   );
   const [methods, setMethods] = useState<Method[]>(data?.methods || []);
   const [error, setError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('No fields can be empty');
+  const [errorMessage, setErrorMessage] = useState(
+    'Ningún campo puede estar vacío'
+  );
   const [loading, setLoading] = useState(false);
 
   const entitiesDispatch = useEntitiesDispatch();
   const { diagramId } = useParams();
   const { setAlert } = useAlert();
+  const { emitEntityCreated, emitEntityUpdated, emitEntityDeleted } = useSocket();
+  const { pushCommand } = useHistory();
 
   useEffect(() => {
     setLoading(true);
@@ -119,11 +126,33 @@ function ClassModal({ open, handleClose, id, data }: ClassModalProps) {
         );
         const updatedKlass = res.data as Entity;
         entitiesDispatch({ type: 'UPDATE_ENTITY', payload: updatedKlass });
-        setAlert('Class updated successfully', AlertType.SUCCESS);
+        emitEntityUpdated(updatedKlass);
+
+        const previousState = data;
+        if (previousState) {
+          pushCommand({
+            undo: async () => {
+              const resUndo = await axios.put(`/api/class/${id}?diagramId=${diagramId}`, previousState).catch(() => null);
+              if (resUndo) {
+                entitiesDispatch({ type: 'UPDATE_ENTITY', payload: resUndo.data });
+                emitEntityUpdated(resUndo.data);
+              }
+            },
+            redo: async () => {
+              const resRedo = await axios.put(`/api/class/${id}?diagramId=${diagramId}`, klass).catch(() => null);
+              if (resRedo) {
+                entitiesDispatch({ type: 'UPDATE_ENTITY', payload: resRedo.data });
+                emitEntityUpdated(resRedo.data);
+              }
+            }
+          });
+        }
+
+        setAlert('Clase actualizada exitosamente', AlertType.SUCCESS);
         close();
       } catch (err: any) {
         setError(true);
-        setErrorMessage(err.response.data.message);
+        setErrorMessage(err.response?.data?.message || 'Error');
       }
     } else {
       // adding new class
@@ -134,11 +163,30 @@ function ClassModal({ open, handleClose, id, data }: ClassModalProps) {
         );
         const newKlass = res.data as Entity;
         entitiesDispatch({ type: 'ADD_ENTITY', payload: newKlass });
-        setAlert('Class created successfully', AlertType.SUCCESS);
+        emitEntityCreated(newKlass);
+
+        pushCommand({
+          undo: async () => {
+            await axios.delete(`/api/entity/${newKlass.id}?diagramId=${diagramId}`).catch(() => null);
+            entitiesDispatch({ type: 'DELETE_ENTITY', id: newKlass.id });
+            emitEntityDeleted(newKlass.id);
+          },
+          redo: async () => {
+            // We pass id to explicitly preserve it!
+            const payloadWithId = { ...klass, id: newKlass.id };
+            const resRedo = await axios.post(`/api/class?diagramId=${diagramId}`, payloadWithId).catch(() => null);
+            if (resRedo) {
+              entitiesDispatch({ type: 'ADD_ENTITY', payload: resRedo.data });
+              emitEntityCreated(resRedo.data);
+            }
+          }
+        });
+
+        setAlert('Clase creada exitosamente', AlertType.SUCCESS);
         close();
       } catch (err: any) {
         setError(true);
-        setErrorMessage(err.response.data.message);
+        setErrorMessage(err.response?.data?.message || 'Error');
       }
     }
     setLoading(false);
@@ -151,17 +199,17 @@ function ClassModal({ open, handleClose, id, data }: ClassModalProps) {
       aria-labelledby="Class Form"
       aria-describedby="Specify the contents of a class"
     >
-      <form className="modal-content entity-content" onSubmit={handleSubmit}>
+      <Paper component="form" className="modal-content entity-content" onSubmit={handleSubmit}>
         <div>
           <h2>
-            {id ? 'Edit' : 'Create'} Class&nbsp;
+            {id ? 'Editar' : 'Crear'} Clase&nbsp;
             <Tooltip title={classHelperText}>
               <InfoOutlinedIcon fontSize="small" />
             </Tooltip>
           </h2>
           <TextField
             variant="standard"
-            label="Class Name"
+            label="Nombre de la Clase"
             value={name}
             onChange={(e) => setName(e.target.value)}
             fullWidth
@@ -177,7 +225,7 @@ function ClassModal({ open, handleClose, id, data }: ClassModalProps) {
                 sx={{ paddingLeft: 2 }}
               />
             }
-            label="Abstract"
+            label="Abstracta"
           />
           <TabContext value={tabValue}>
             <Box
@@ -185,11 +233,11 @@ function ClassModal({ open, handleClose, id, data }: ClassModalProps) {
             >
               <TabList
                 onChange={handleTabChange}
-                aria-label="add properties to class"
+                aria-label="añadir propiedades a la clase"
               >
-                <Tab label="Constants" value="1" />
-                <Tab label="Attributes" value="2" />
-                <Tab label="Methods" value="3" />
+                <Tab label="Constantes" value="1" />
+                <Tab label="Atributos" value="2" />
+                <Tab label="Métodos" value="3" />
               </TabList>
             </Box>
             <TabPanel value="1" sx={{ padding: 0, paddingTop: '1em' }}>
@@ -211,13 +259,13 @@ function ClassModal({ open, handleClose, id, data }: ClassModalProps) {
         </div>
         <div className="buttons">
           <Button variant="text" onClick={close} disabled={loading}>
-            Cancel
+            Cancelar
           </Button>
           <Button variant="text" type="submit" disabled={loading}>
-            OK
+            Aceptar
           </Button>
         </div>
-      </form>
+      </Paper>
     </Modal>
   );
 }

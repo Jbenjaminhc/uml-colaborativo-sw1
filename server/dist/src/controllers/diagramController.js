@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setDiagramPrivacy = exports.renameDiagram = exports.getDiagramsForUser = exports.getDiagramPrivacy = exports.getDiagramContentsPublic = exports.getDiagramContents = exports.deleteDiagram = exports.createDiagram = void 0;
+exports.setDiagramPrivacy = exports.renameDiagram = exports.getDiagramsForUser = exports.getDiagramPrivacy = exports.getDiagramContentsPublic = exports.getDiagramContents = exports.deleteDiagram = exports.createDiagram = exports.updateDiagramPositions = exports.clearDiagram = void 0;
 const mongoose_1 = require("mongoose");
 const diagram_model_1 = require("../models/diagram.model");
 const entity_model_1 = require("../models/entity.model");
@@ -13,12 +13,20 @@ const relationshipService_1 = require("./relationshipService");
  * @returns all diagrams for the user
  */
 const getDiagramsForUser = async (userId) => {
-    const diagrams = await diagram_model_1.DiagramModel.find({ userId });
-    return diagrams.map((d) => ({
-        id: d._id,
-        name: d.name,
-        modified: d.updatedAt,
-    }));
+    const diagrams = await diagram_model_1.DiagramModel.find({
+        $or: [{ userId }, { 'collaborators.userId': userId }],
+    });
+    return diagrams.map((d) => {
+        const isOwner = d.userId === userId;
+        const collaborator = d.collaborators?.find((c) => c.userId.toString() === userId);
+        return {
+            id: d._id,
+            name: d.name,
+            modified: d.updatedAt,
+            isOwner,
+            role: isOwner ? 'owner' : collaborator ? collaborator.role : 'viewer',
+        };
+    });
 };
 exports.getDiagramsForUser = getDiagramsForUser;
 /**
@@ -126,6 +134,41 @@ const deleteDiagram = async (id) => {
     if (!(0, mongoose_1.isValidObjectId)(id))
         throw new Error('Diagram not found');
     await diagram_model_1.DiagramModel.findByIdAndDelete(id);
+    await entity_model_1.EntityModel.deleteMany({ diagramId: id });
+    await relationship_model_1.RelationshipModel.deleteMany({ diagramId: id });
 };
 exports.deleteDiagram = deleteDiagram;
+/**
+ * Clear all entities and relationships from a diagram
+ * @param id id of the diagram to clear
+ */
+const clearDiagram = async (id) => {
+    if (!id || !(0, mongoose_1.isValidObjectId)(id)) {
+        throw new Error('Diagram id is missing or invalid');
+    }
+    // Delete all entities and relationships associated with the diagram
+    await entity_model_1.EntityModel.deleteMany({ diagramId: id });
+    await relationship_model_1.RelationshipModel.deleteMany({ diagramId: id });
+};
+exports.clearDiagram = clearDiagram;
+/**
+ * Update multiple entity positions at once (bulk update)
+ * @param id diagram id
+ * @param updates array of { entityId, position: { x, y } }
+ */
+const updateDiagramPositions = async (id, updates) => {
+    if (!id || !(0, mongoose_1.isValidObjectId)(id)) {
+        throw new Error('Diagram id is missing or invalid');
+    }
+    const bulkOps = updates.map((update) => ({
+        updateOne: {
+            filter: { _id: update.entityId, diagramId: id },
+            update: { $set: { position: update.position } },
+        },
+    }));
+    if (bulkOps.length > 0) {
+        await entity_model_1.EntityModel.bulkWrite(bulkOps);
+    }
+};
+exports.updateDiagramPositions = updateDiagramPositions;
 //# sourceMappingURL=diagramController.js.map

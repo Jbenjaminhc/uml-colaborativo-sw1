@@ -5,6 +5,15 @@ const diagramSchema = z.object({
   name: z.string(),
   userId: z.string(),
   isPublic: z.boolean(),
+  collaborators: z
+    .array(
+      z.object({
+        userId: z.any(),
+        role: z.enum(['editor', 'viewer']),
+        addedAt: z.date().optional(),
+      })
+    )
+    .optional(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });
@@ -20,6 +29,13 @@ const schema = new Schema<Diagram>(
       required: true,
       default: false,
     },
+    collaborators: [
+      {
+        userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        role: { type: String, enum: ['editor', 'viewer'], default: 'editor' },
+        addedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -1,12 +1,17 @@
 import dotenv from 'dotenv';
+import http from 'http';
 import app from './app';
 import connectDB from './db';
+import { initializeSocketIO } from './socket';
 
 dotenv.config();
 
 const start = (port: number) => {
   try {
-    app.listen(port, () => {
+    const httpServer = http.createServer(app);
+    const io = initializeSocketIO(httpServer);
+    app.set('io', io);
+    httpServer.listen(port, () => {
       console.log(`Server listening on ${port}`);
     });
     connectDB();

@@ -11,6 +11,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
   ],
+  ignorePatterns: ['src/export/resources/wrapper/**/*'],
   overrides: [],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -23,5 +24,18 @@ module.exports = {
     'no-console': 0,
     'no-underscore-dangle': 0,
     '@typescript-eslint/naming-convention': 0,
+    'no-restricted-syntax': 0,
+    'no-continue': 0,
+    'no-param-reassign': 0,
+    'import/prefer-default-export': 0,
+    '@typescript-eslint/no-unused-vars': 0,
+    '@typescript-eslint/no-explicit-any': 0,
+    'consistent-return': 0,
+    '@typescript-eslint/no-non-null-assertion': 0,
+    'no-promise-executor-return': 0,
+    'prefer-const': 0,
+    '@typescript-eslint/no-use-before-define': 0,
+    'no-plusplus': 0,
+    'no-nested-ternary': 0
   },
 };

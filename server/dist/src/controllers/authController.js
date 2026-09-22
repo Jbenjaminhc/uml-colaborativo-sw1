@@ -66,10 +66,12 @@ const signup = async (username, email, password) => {
     if (duplicateUsername)
         throw new Error('Username taken');
     const hashedPassword = await bcrypt_1.default.hash(password, 10);
+    const autoVerify = process.env.NODE_ENV !== 'test' && !process.env.EMAILJS_SERVICE_ID;
     const newUser = await user_model_1.UserModel.create({
         username,
         email,
         password: hashedPassword,
+        verified: autoVerify,
     });
     return newUser;
 };
@@ -110,6 +112,10 @@ const sendVerificationEmail = async (user) => {
         expiresIn: '2d',
     });
     const link = `${process.env.CLIENT_URL}/verify?token=${token}`;
+    console.log(`[AUTH] Verification link: ${link}`);
+    if (!process.env.EMAILJS_SERVICE_ID) {
+        return;
+    }
     const templateParams = {
         to: user.email,
         username: user.username,
@@ -135,6 +141,10 @@ const sendPasswordResetEmail = async (user) => {
         expiresIn: '1h',
     });
     const link = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
+    console.log(`[AUTH] Password reset link: ${link}`);
+    if (!process.env.EMAILJS_SERVICE_ID) {
+        return;
+    }
     const templateParams = {
         to: user.email,
         htmlLink: `<a href="${link}">Reset your password</a>`,

@@ -1,11 +1,12 @@
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
-import { Box, Button, Modal, Tab, TextField, Tooltip } from '@mui/material';
+import { Box, Button, Modal, Paper, Tab, TextField, Tooltip } from '@mui/material';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useEntitiesDispatch } from '../../../context/EntitiesContext';
 import '../../../styles/FormModals.css';
+import { useSocket } from '../../../context/SocketContext';
 import { Constant, Entity, Interface, Method } from '../../../types';
 import { AlertType } from '../../alert/AlertContext';
 import useAlert from '../../alert/useAlert';
@@ -21,8 +22,8 @@ type InterfaceModalProps = {
   data?: Interface;
 };
 
-const interfaceHelperText = `Interfaces are used to define common behavior for classes. 
-They have a name and contain constants and methods. If you want to enforce attributes, create an abstract class instead.`;
+const interfaceHelperText = `Las interfaces se utilizan para definir un comportamiento común para las clases. 
+Tienen un nombre y contienen constantes y métodos. Si desea exigir atributos, cree una clase abstracta en su lugar.`;
 
 function InterfaceModal({ open, handleClose, id, data }: InterfaceModalProps) {
   const [tabValue, setTabValue] = useState('1');
@@ -30,12 +31,15 @@ function InterfaceModal({ open, handleClose, id, data }: InterfaceModalProps) {
   const [constants, setConstants] = useState<Constant[]>(data?.constants || []);
   const [methods, setMethods] = useState<Method[]>(data?.methods || []);
   const [error, setError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('No fields can be empty');
+  const [errorMessage, setErrorMessage] = useState(
+    'Ningún campo puede estar vacío'
+  );
   const [loading, setLoading] = useState(false);
 
   const entitiesDispatch = useEntitiesDispatch();
   const { diagramId } = useParams();
   const { setAlert } = useAlert();
+  const { emitEntityCreated, emitEntityUpdated } = useSocket();
 
   useEffect(() => {
     setLoading(true);
@@ -96,11 +100,12 @@ function InterfaceModal({ open, handleClose, id, data }: InterfaceModalProps) {
           type: 'UPDATE_ENTITY',
           payload: updatedInterface,
         });
-        setAlert('Interface updated successfully', AlertType.SUCCESS);
+        emitEntityUpdated(updatedInterface);
+        setAlert('Interfaz actualizada exitosamente', AlertType.SUCCESS);
         close();
       } catch (err: any) {
         setError(true);
-        setErrorMessage(err.response.data.message);
+        setErrorMessage(err.response?.data?.message || 'Error');
       }
     } else {
       // create
@@ -114,11 +119,12 @@ function InterfaceModal({ open, handleClose, id, data }: InterfaceModalProps) {
           type: 'ADD_ENTITY',
           payload: newInterface,
         });
-        setAlert('Interface created successfully', AlertType.SUCCESS);
+        emitEntityCreated(newInterface);
+        setAlert('Interfaz creada exitosamente', AlertType.SUCCESS);
         close();
       } catch (err: any) {
         setError(true);
-        setErrorMessage(err.response.data.message);
+        setErrorMessage(err.response?.data?.message || 'Error');
       }
     }
     setLoading(false);
@@ -131,17 +137,17 @@ function InterfaceModal({ open, handleClose, id, data }: InterfaceModalProps) {
       aria-labelledby="Interface Form"
       aria-describedby="Specify the contents of an interface"
     >
-      <form className="modal-content entity-content" onSubmit={handleSubmit}>
+      <Paper component="form" className="modal-content entity-content" onSubmit={handleSubmit}>
         <div>
           <h2>
-            {id ? 'Edit' : 'Create'} Interface&nbsp;
+            {id ? 'Editar' : 'Crear'} Interfaz&nbsp;
             <Tooltip title={interfaceHelperText}>
               <InfoOutlinedIcon fontSize="small" />
             </Tooltip>
           </h2>
           <TextField
             variant="standard"
-            label="Interface Name"
+            label="Nombre de la Interfaz"
             value={name}
             onChange={(e) => setName(e.target.value)}
             fullWidth
@@ -157,8 +163,8 @@ function InterfaceModal({ open, handleClose, id, data }: InterfaceModalProps) {
                 onChange={handleTabChange}
                 aria-label="add properties to interface"
               >
-                <Tab label="Constants" value="1" />
-                <Tab label="Methods" value="3" />
+                <Tab label="Constantes" value="1" />
+                <Tab label="Métodos" value="3" />
               </TabList>
             </Box>
             <TabPanel value="1" sx={{ padding: 0, paddingTop: '1em' }}>
@@ -174,13 +180,13 @@ function InterfaceModal({ open, handleClose, id, data }: InterfaceModalProps) {
         </div>
         <div className="buttons">
           <Button variant="text" onClick={close} disabled={loading}>
-            Cancel
+            Cancelar
           </Button>
           <Button variant="text" type="submit" disabled={loading}>
-            OK
+            Aceptar
           </Button>
         </div>
-      </form>
+      </Paper>
     </Modal>
   );
 }

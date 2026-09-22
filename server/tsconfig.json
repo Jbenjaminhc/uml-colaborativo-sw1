@@ -2,13 +2,18 @@
   "compilerOptions": {
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "baseUrl": "src",
+    "target": "ES2022",
+    "rootDir": "./src",
     "outDir": "./dist",
+    "baseUrl": "./src",
     "sourceMap": true,
-    "noImplicitAny": true,
     "strict": true,
+    "noImplicitAny": true,
     "esModuleInterop": true,
-    "typeRoots": ["@types", "./node_modules/@types"]
+    "skipLibCheck": true,
+    "downlevelIteration": true,
+    "typeRoots": ["./@types", "./node_modules/@types"]
   },
-  "include": ["src/**/*", ".eslintrc.js", "jest.config.ts", "tests", "express"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "tests"]
 }

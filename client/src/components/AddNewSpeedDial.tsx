@@ -59,7 +59,7 @@ function AddNewSpeedDial() {
       <Tooltip title="Add New" arrow placement="left-end">
         <SpeedDial
           ariaLabel="Add New SpeedDial"
-          sx={{ position: 'absolute', bottom: '5vh', right: '5vh' }}
+          sx={{ position: 'absolute', bottom: { xs: 16, md: 24 }, right: { xs: 16, md: 24 } }}
           icon={<SpeedDialIcon />}
           open={open}
           onClick={() => setOpen(!open)}

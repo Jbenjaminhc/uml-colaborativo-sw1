@@ -20,13 +20,14 @@ const router = express_1.default.Router();
 router.put('/:id/position', auth_1.default, async (req, res) => {
     const { id } = req.params;
     const position = req.body;
+    console.log(`[PUT /:id/position] id=${id}, position=`, position);
     try {
         await (0, classController_1.updatePosition)(id, req.query.diagramId, position);
-        res.status(204).json({ message: 'Successfully updated position' });
+        res.status(200).json({ message: 'Successfully updated position' });
     }
     catch (e) {
         res.status(400).json({ message: (0, utils_1.getErrorMessage)(e) });
-        console.log((0, utils_1.getErrorMessage)(e));
+        console.log(`[PUT /:id/position] ERROR:`, (0, utils_1.getErrorMessage)(e), e);
     }
 });
 /**
@@ -41,7 +42,7 @@ router.delete('/:id', auth_1.default, async (req, res) => {
     const { id } = req.params;
     try {
         await (0, classController_1.deleteEntity)(id, req.query.diagramId);
-        res.status(204).json({ message: 'OK' });
+        res.status(200).json({ message: 'OK' });
     }
     catch (e) {
         res.status(400).json({ message: (0, utils_1.getErrorMessage)(e) });

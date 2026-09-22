@@ -46,15 +46,15 @@ function AttributeField({
             attribute.visibility
           )
         }
-        label="Type"
+        label="Tipo"
         width={100}
-        includePrimitives
+        primitiveType="attribute"
         includeClasses
         includeInterfaces
         includeEnums
       />
       <TextField
-        label="Name"
+        label="Nombre"
         variant="standard"
         value={attribute.name}
         onChange={(e) =>
@@ -68,7 +68,7 @@ function AttributeField({
         required
         sx={{ width: 170 }}
       />
-      <Tooltip title="Delete" placement="right">
+      <Tooltip title="Eliminar" placement="right">
         <IconButton
           className="remove-button"
           aria-label="delete attribute"
@@ -144,7 +144,7 @@ function AttributesInput({ attributes, setAttributes }: AttributesInputProps) {
         startIcon={<AddRoundedIcon />}
         onClick={addAttribute}
       >
-        Add
+        Añadir
       </Button>
     </div>
   );

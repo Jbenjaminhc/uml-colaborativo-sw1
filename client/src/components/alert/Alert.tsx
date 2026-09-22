@@ -12,7 +12,7 @@ function AlertToast() {
         sx={{
           position: 'fixed',
           top: '5em',
-          zIndex: 10,
+          zIndex: 9999,
         }}
       >
         {text}

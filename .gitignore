@@ -1,0 +1,18 @@
+# Documentación local del proyecto
+/docs/
+/Documentacion/
+
+# Dependencias y artefactos generados
+node_modules/
+dist/
+coverage/
+
+# Variables de entorno y secretos locales
+.env
+.env.*
+!.env.example
+
+# Archivos del sistema y del editor
+.DS_Store
+Thumbs.db
+.idea/

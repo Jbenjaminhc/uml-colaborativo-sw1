@@ -1,9 +1,10 @@
+import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import {
   BaseEdge,
   EdgeLabelRenderer,
   EdgeProps,
-  getBezierPath,
+  getSmoothStepPath,
 } from 'reactflow';
 import { RelationshipEditModal } from '../../forms/modals/RelationshipModal';
 import EdgeLabel from './EdgeLabel';
@@ -25,7 +26,10 @@ export function AggregationEdgeView({
   targetPosition,
   data,
 }: EdgeProps) {
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const theme = useTheme();
+  const edgeColor = theme.palette.mode === 'dark' ? '#b1b1b7' : '#555';
+  const emptyFill = theme.palette.mode === 'dark' ? theme.palette.background.default : '#eee';
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -61,11 +65,11 @@ export function AggregationEdgeView({
               C13.4705 20.5294 13.0745 20.9254 12.6178 21.0738
               C12.2161 21.2043 11.7834 21.2043 11.3817 21.0738C10.9251 20.9254 10.5291 20.5294 9.73703 19.7373
               L4.26244 14.2628Z"
-              stroke="#555"
+              stroke={edgeColor}
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              fill="#eee"
+              fill={emptyFill}
             />
           </marker>
         </defs>
@@ -102,7 +106,10 @@ function AggregationEdge({
   data,
   selected,
 }: EdgeProps) {
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const theme = useTheme();
+  const edgeColor = theme.palette.mode === 'dark' ? '#b1b1b7' : '#555';
+  const emptyFill = theme.palette.mode === 'dark' ? theme.palette.background.default : '#eee';
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,

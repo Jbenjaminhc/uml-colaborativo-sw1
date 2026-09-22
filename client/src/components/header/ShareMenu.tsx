@@ -1,9 +1,18 @@
 import LinkIcon from '@mui/icons-material/Link';
-import { Button, FormControlLabel, Switch, Typography } from '@mui/material';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
+import {
+  Button,
+  FormControlLabel,
+  Switch,
+  Typography,
+  Box,
+  Paper,
+} from '@mui/material';
 import Modal from '@mui/material/Modal';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import CollaboratorManager from '../CollaboratorManager';
 
 type ShareMenuProps = {
   open: boolean;
@@ -13,6 +22,7 @@ type ShareMenuProps = {
 
 function ShareMenu({ open, handleClose, isEditor }: ShareMenuProps) {
   const [isPublic, setIsPublic] = useState(false);
+  const [collabOpen, setCollabOpen] = useState(false);
 
   const { diagramId } = useParams();
 
@@ -42,52 +52,73 @@ function ShareMenu({ open, handleClose, isEditor }: ShareMenuProps) {
   };
 
   return (
-    <Modal open={open} onClose={handleClose}>
-      <div className="modal-content">
-        <h2>Share this Diagram</h2>
-        <div className="share-menu">
-          <div>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isPublic || !isEditor}
-                  onChange={handleSwitch}
-                  disabled={!isEditor}
-                />
-              }
-              label="Public"
-            />
-            {isEditor ? (
-              <Typography variant="body2">
-                Making a diagram public lets any user be able to view this
-                diagram. It does not allow public editing.
-              </Typography>
-            ) : (
-              <Typography variant="body2">
-                This diagram is able to be viewed publicly. Copy the link below
-              </Typography>
-            )}
-            {(isPublic || !isEditor) && (
-              <Button
-                variant="outlined"
-                startIcon={<LinkIcon />}
-                onClick={handleCopy}
-                sx={{ marginTop: '1rem' }}
-              >
-                Copy link
-              </Button>
-            )}
+    <>
+      <Modal open={open} onClose={handleClose}>
+        <Paper className="modal-content">
+          <h2>Compartir este Diagrama</h2>
+          <div className="share-menu">
+            <div>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={isPublic || !isEditor}
+                    onChange={handleSwitch}
+                    disabled={!isEditor}
+                  />
+                }
+                label="Público"
+              />
+              {isEditor ? (
+                <Typography variant="body2">
+                  Hacer un diagrama público permite que cualquier usuario pueda
+                  ver este diagrama. No permite la edición pública.
+                </Typography>
+              ) : (
+                <Typography variant="body2">
+                  Este diagrama puede ser visto públicamente. Copia el enlace
+                  abajo
+                </Typography>
+              )}
+              {(isPublic || !isEditor) && (
+                <Button
+                  variant="outlined"
+                  startIcon={<LinkIcon />}
+                  onClick={handleCopy}
+                  sx={{ marginTop: '1rem', mr: 1 }}
+                >
+                  Copiar enlace
+                </Button>
+              )}
+              {isEditor && (
+                <Button
+                  variant="outlined"
+                  startIcon={<GroupAddIcon />}
+                  onClick={() => setCollabOpen(true)}
+                  sx={{ marginTop: '1rem' }}
+                >
+                  Colaboradores
+                </Button>
+              )}
+            </div>
+            <Button
+              variant="contained"
+              sx={{ marginTop: '1rem', float: 'right' }}
+              onClick={handleClose}
+            >
+              Listo
+            </Button>
           </div>
-          <Button
-            variant="contained"
-            sx={{ marginTop: '1rem', float: 'right' }}
-            onClick={handleClose}
-          >
-            Done
-          </Button>
-        </div>
-      </div>
-    </Modal>
+        </Paper>
+      </Modal>
+      {diagramId && (
+        <CollaboratorManager
+          open={collabOpen}
+          onClose={() => setCollabOpen(false)}
+          diagramId={diagramId}
+          isOwner={isEditor}
+        />
+      )}
+    </>
   );
 }
 

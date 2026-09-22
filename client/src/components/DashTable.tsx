@@ -16,6 +16,8 @@ import {
   TableHead,
   TableRow,
   Tooltip,
+  Chip,
+  Box,
 } from '@mui/material';
 import axios from 'axios';
 import { useState } from 'react';
@@ -25,8 +27,14 @@ import { AlertType } from './alert/AlertContext';
 import useAlert from './alert/useAlert';
 import RenameModal from './forms/modals/RenameModal';
 
+// Extended type for Diagram to include optional shared info
+type DashDiagram = Diagram & {
+  ownerId?: string;
+  ownerName?: string;
+};
+
 type Props = {
-  diagrams: Diagram[];
+  diagrams: DashDiagram[];
   handleDeleteDiagram: (diagramId: string) => void;
   handleRenameDiagram: (diagramId: string, name: string) => void;
 };
@@ -90,60 +98,84 @@ function DashTable({
     const diagramId = anchorEl?.parentElement?.parentElement?.id;
     try {
       await axios.delete(`/api/diagram/${diagramId}`);
-      setAlert('Diagram deleted', AlertType.SUCCESS);
+      setAlert('Diagrama eliminado', AlertType.SUCCESS);
       handleDeleteDiagram(diagramId as string);
     } catch (err) {
-      setAlert('Error deleting diagram. Please try again.', AlertType.ERROR);
+      setAlert(
+        'Error al eliminar el diagrama. Por favor, inténtalo de nuevo.',
+        AlertType.ERROR
+      );
     }
     handleClose();
   };
+
+  const currentUserId = localStorage.getItem('userId');
 
   return (
     <>
       <TableContainer
         component={Paper}
-        sx={{ marginTop: 3, marginBottom: 3, width: '80%', maxHeight: '80vh' }}
+        sx={{ marginTop: 3, marginBottom: 3, width: '100%', maxHeight: '80vh', overflowX: 'auto' }}
       >
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+        <Table sx={{ minWidth: { xs: 400, md: 650 } }} aria-label="simple table">
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell align="right">Last Modified</TableCell>
+              <TableCell>Nombre</TableCell>
+              <TableCell align="right">Última Modificación</TableCell>
               <TableCell align="right" width={10} />
             </TableRow>
           </TableHead>
           <TableBody>
-            {diagrams.map((diagram) => (
-              <TableRow
-                key={diagram.id}
-                id={diagram.id}
-                onDoubleClick={handleOpenDiagram}
-              >
-                <TableCell component="th" scope="row">
-                  <Tooltip title="Double click to open">
-                    <span>{diagram.name}</span>
-                  </Tooltip>
-                </TableCell>
-                <TableCell align="right">
-                  <Tooltip title={new Date(diagram.modified).toString()}>
-                    <span>{parseDate(diagram.modified)}</span>
-                  </Tooltip>
-                </TableCell>
-                <TableCell align="right">
-                  <Tooltip title="More Actions">
-                    <IconButton
-                      aria-label="more"
-                      size="large"
-                      aria-haspopup="true"
-                      aria-expanded={open ? 'true' : undefined}
-                      onClick={handleOpen}
-                    >
-                      <MoreVertIcon />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
+            {diagrams.map((diagram) => {
+              const isShared =
+                diagram.ownerId && diagram.ownerId !== currentUserId;
+
+              return (
+                <TableRow
+                  key={diagram.id}
+                  id={diagram.id}
+                  onDoubleClick={handleOpenDiagram}
+                >
+                  <TableCell component="th" scope="row">
+                    <Tooltip title="Doble clic para abrir">
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                      >
+                        <span>{diagram.name}</span>
+                        {isShared && (
+                          <Chip
+                            label={`Compartido por ${
+                              diagram.ownerName || 'otro usuario'
+                            }`}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                          />
+                        )}
+                      </Box>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Tooltip title={new Date(diagram.modified).toString()}>
+                      <span>{parseDate(diagram.modified)}</span>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Tooltip title="Más Acciones">
+                      <IconButton
+                        aria-label="more"
+                        size="large"
+                        aria-haspopup="true"
+                        aria-expanded={open ? 'true' : undefined}
+                        onClick={handleOpen}
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
@@ -157,19 +189,19 @@ function DashTable({
           <ListItemIcon>
             <OpenInBrowserIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Open</ListItemText>
+          <ListItemText>Abrir</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleRename}>
           <ListItemIcon>
             <DriveFileRenameOutlineIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Rename</ListItemText>
+          <ListItemText>Renombrar</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleDelete}>
           <ListItemIcon>
             <DeleteForeverIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Delete</ListItemText>
+          <ListItemText>Eliminar</ListItemText>
         </MenuItem>
       </Menu>
       <RenameModal

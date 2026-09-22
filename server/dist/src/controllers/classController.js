@@ -11,6 +11,8 @@ const createClass = async (data, diagramId) => {
     try {
         // create a new entity while removing whitespace from all names
         const entity = new entity_model_1.EntityModel({
+            ...(data.id ? { _id: data.id } : {}),
+            ...(data.position ? { position: data.position } : {}),
             diagramId,
             type: 'class',
             data: {
@@ -63,8 +65,9 @@ const deleteEntity = async (entityId, diagramId) => {
             _id: entityId,
             diagramId,
         });
+        // Si la entidad ya no existe, consideramos que la eliminación fue exitosa
         if (!entity) {
-            throw new Error();
+            return;
         }
         // delete all relationships that are connected to the entity
         await relationship_model_1.RelationshipModel.deleteMany({
@@ -79,7 +82,7 @@ exports.deleteEntity = deleteEntity;
 const updatePosition = async (entityId, diagramId, position) => {
     try {
         const entity = await entity_model_1.EntityModel.findOneAndUpdate({ _id: entityId, diagramId }, {
-            position,
+            $set: { position },
         });
         if (!entity) {
             throw new Error();

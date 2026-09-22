@@ -15,12 +15,24 @@ import { reformatRelationship } from './relationshipService';
  * @returns all diagrams for the user
  */
 const getDiagramsForUser = async (userId: string) => {
-  const diagrams = await DiagramModel.find({ userId });
-  return diagrams.map((d) => ({
-    id: d._id,
-    name: d.name,
-    modified: d.updatedAt,
-  }));
+  const diagrams = await DiagramModel.find({
+    $or: [{ userId }, { 'collaborators.userId': userId }],
+  });
+
+  return diagrams.map((d) => {
+    const isOwner = d.userId === userId;
+    const collaborator = d.collaborators?.find(
+      (c) => c.userId.toString() === userId
+    );
+
+    return {
+      id: d._id,
+      name: d.name,
+      modified: d.updatedAt,
+      isOwner,
+      role: isOwner ? 'owner' : collaborator ? collaborator.role : 'viewer',
+    };
+  });
 };
 
 /**
@@ -124,7 +136,48 @@ const deleteDiagram = async (id: string) => {
   await RelationshipModel.deleteMany({ diagramId: id });
 };
 
+/**
+ * Clear all entities and relationships from a diagram
+ * @param id id of the diagram to clear
+ */
+const clearDiagram = async (id: string) => {
+  if (!id || !isValidObjectId(id)) {
+    throw new Error('Diagram id is missing or invalid');
+  }
+
+  // Delete all entities and relationships associated with the diagram
+  await EntityModel.deleteMany({ diagramId: id });
+  await RelationshipModel.deleteMany({ diagramId: id });
+};
+
+/**
+ * Update multiple entity positions at once (bulk update)
+ * @param id diagram id
+ * @param updates array of { entityId, position: { x, y } }
+ */
+const updateDiagramPositions = async (
+  id: string,
+  updates: { entityId: string; position: { x: number; y: number } }[]
+) => {
+  if (!id || !isValidObjectId(id)) {
+    throw new Error('Diagram id is missing or invalid');
+  }
+
+  const bulkOps = updates.map((update) => ({
+    updateOne: {
+      filter: { _id: update.entityId, diagramId: id },
+      update: { $set: { position: update.position } },
+    },
+  }));
+
+  if (bulkOps.length > 0) {
+    await EntityModel.bulkWrite(bulkOps);
+  }
+};
+
 export {
+  clearDiagram,
+  updateDiagramPositions,
   createDiagram,
   deleteDiagram,
   getDiagramContents,

@@ -46,7 +46,7 @@ function LongRelationshipInput({
       <div className="section">
         <TextField
           variant="standard"
-          label="Label"
+          label="Etiqueta"
           fullWidth
           value={label}
           onChange={(e) => setLabel(e.target.value)}
@@ -55,7 +55,7 @@ function LongRelationshipInput({
           {type === 'Association' ? (
             <TextField
               variant="standard"
-              label={`${getSourceLabel(type)} Multiplicity`}
+              label={`Multiplicidad de ${getSourceLabel(type)}`}
               value={srcMultiplicity}
               onChange={(e) => setSrcMultiplicity(e.target.value)}
               sx={{ width: 190 }}
@@ -64,7 +64,7 @@ function LongRelationshipInput({
           ) : null}
           <TextField
             variant="standard"
-            label={`${getTargetLabel(type)} Multiplicity`}
+            label={`Multiplicidad de ${getTargetLabel(type)}`}
             value={tgtMultiplicity}
             onChange={(e) => setTgtMultiplicity(e.target.value)}
             sx={{ width: 190 }}

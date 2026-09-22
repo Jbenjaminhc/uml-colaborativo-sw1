@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { NodeProps } from 'reactflow';
+import { NodeProps, useReactFlow } from 'reactflow';
 import { useEntitiesDispatch } from '../../../context/EntitiesContext';
 import { Enum, EnumValue } from '../../../types';
 import { AlertType } from '../../alert/AlertContext';
@@ -10,11 +10,18 @@ import EnumModal from '../../forms/modals/EnumModal';
 import Handles from './Handles';
 import NodeToolBarCustom from './NodeToolBarCustom';
 
+import { useSocket } from '../../../context/SocketContext';
+
+import { Paper, useTheme } from '@mui/material';
+
 export function EnumNodeView({ data }: { data: Enum }) {
+  const theme = useTheme();
+  const bgColor = theme.palette.mode === 'dark' ? '#3e1a1a' : '#ffcccb';
+
   return (
     <>
       <Handles />
-      <div className="node" style={{ backgroundColor: '#ffcccb' }}>
+      <Paper className="node" style={{ backgroundColor: bgColor }} elevation={3}>
         <div className="node-header">
           <div className="node-supertitle">{'<enumeration>'}</div>
 
@@ -31,25 +38,24 @@ export function EnumNodeView({ data }: { data: Enum }) {
               ))}
           </div>
         </div>
-      </div>
+      </Paper>
     </>
   );
 }
 
 function EnumNode({ id, data }: NodeProps<Enum>) {
   const [editOpen, setEditOpen] = useState(false);
-  const entitiesDispatch = useEntitiesDispatch();
+  const { emitEntityDeleted } = useSocket();
 
   const { setAlert } = useAlert();
   const { diagramId } = useParams();
 
-  const handleDelete = async () => {
-    try {
-      await axios.delete(`/api/entity/${id}?diagramId=${diagramId}`);
-      entitiesDispatch({ type: 'DELETE_ENTITY', id });
-      setAlert('Enum successfully deleted', AlertType.SUCCESS);
-    } catch (e) {
-      setAlert('Could not delete enum. Try again', AlertType.ERROR);
+  const { deleteElements, getNode } = useReactFlow();
+
+  const handleDelete = () => {
+    const node = getNode(id);
+    if (node) {
+      deleteElements({ nodes: [node] });
     }
   };
 

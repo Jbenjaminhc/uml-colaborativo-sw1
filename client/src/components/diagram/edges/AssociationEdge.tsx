@@ -4,7 +4,7 @@ import {
   EdgeLabelRenderer,
   EdgeProps,
   Position,
-  getBezierPath,
+  getSmoothStepPath,
 } from 'reactflow';
 import { RelationshipEditModal } from '../../forms/modals/RelationshipModal';
 import EdgeLabel from './EdgeLabel';
@@ -20,7 +20,7 @@ export function AssociationEdgeView({
   targetPosition,
   data,
 }: EdgeProps) {
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -88,7 +88,7 @@ function AssociationEdge({
   data,
   selected,
 }: EdgeProps) {
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,

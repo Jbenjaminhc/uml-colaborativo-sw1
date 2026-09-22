@@ -6,6 +6,7 @@ const userSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   verified: z.boolean().default(false),
+  role: z.enum(['user', 'admin']).default('user'),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });
@@ -31,6 +32,11 @@ const schema = new Schema<User>(
     verified: {
       type: Boolean,
       default: false,
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
     },
   },
   { timestamps: true }

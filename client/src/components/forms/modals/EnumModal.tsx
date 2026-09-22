@@ -1,11 +1,20 @@
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
-import { Box, Button, Modal, Tab, TextField, Tooltip } from '@mui/material';
+import {
+  Box,
+  Button,
+  Modal,
+  Tab,
+  TextField,
+  Tooltip,
+  Paper,
+} from '@mui/material';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useEntitiesDispatch } from '../../../context/EntitiesContext';
 import '../../../styles/FormModals.css';
+import { useSocket } from '../../../context/SocketContext';
 import { Entity, Enum, EnumValue } from '../../../types';
 import { AlertType } from '../../alert/AlertContext';
 import useAlert from '../../alert/useAlert';
@@ -20,19 +29,22 @@ type EnumModalProps = {
   data?: Enum;
 };
 
-const enumHelperText = `Enums are a set of constants. Use them to define a set of values that can be used in your program. 
-You cannot assign literal values each constant in this application.`;
+const enumHelperText = `Las enumeraciones son un conjunto de constantes. Úselas para definir un conjunto de valores que se pueden usar en su programa. 
+No puede asignar valores literales a cada constante en esta aplicación.`;
 
 function EnumModal({ open, handleClose, id, data }: EnumModalProps) {
   const [name, setName] = useState(data?.name || '');
   const [values, setValues] = useState<EnumValue[]>(data?.values || []);
   const [error, setError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('No fields can be empty');
+  const [errorMessage, setErrorMessage] = useState(
+    'Ningún campo puede estar vacío'
+  );
   const [loading, setLoading] = useState(false);
 
   const entitiesDispatch = useEntitiesDispatch();
   const { diagramId } = useParams();
   const { setAlert } = useAlert();
+  const { emitEntityCreated, emitEntityUpdated } = useSocket();
 
   useEffect(() => {
     setLoading(true);
@@ -75,11 +87,12 @@ function EnumModal({ open, handleClose, id, data }: EnumModalProps) {
         );
         const updatedEnum = (await res.data) as Entity;
         entitiesDispatch({ type: 'UPDATE_ENTITY', payload: updatedEnum });
-        setAlert('Enum updated successfully', AlertType.SUCCESS);
+        emitEntityUpdated(updatedEnum);
+        setAlert('Enumeración actualizada exitosamente', AlertType.SUCCESS);
         close();
       } catch (err: any) {
         setError(true);
-        setErrorMessage(err.response.data.message);
+        setErrorMessage(err.response?.data?.message || 'Error');
       }
     } else {
       // creating
@@ -90,11 +103,12 @@ function EnumModal({ open, handleClose, id, data }: EnumModalProps) {
         );
         const newEnum = (await res.data) as Entity;
         entitiesDispatch({ type: 'ADD_ENTITY', payload: newEnum });
-        setAlert('Enum created successfully', AlertType.SUCCESS);
+        emitEntityCreated(newEnum);
+        setAlert('Enumeración creada exitosamente', AlertType.SUCCESS);
         close();
       } catch (err: any) {
         setError(true);
-        setErrorMessage(err.response.data.message);
+        setErrorMessage(err.response?.data?.message || 'Error');
       }
     }
     setLoading(false);
@@ -107,17 +121,17 @@ function EnumModal({ open, handleClose, id, data }: EnumModalProps) {
       aria-labelledby="Enum Form"
       aria-describedby="Specify the contents of a enum"
     >
-      <form className="modal-content entity-content" onSubmit={handleSubmit}>
+      <Paper component="form" className="modal-content entity-content" onSubmit={handleSubmit}>
         <div>
           <h2>
-            {id ? 'Edit' : 'Create'} Enumeration&nbsp;
+            {id ? 'Editar' : 'Crear'} Enumeración&nbsp;
             <Tooltip title={enumHelperText}>
               <InfoOutlinedIcon fontSize="small" />
             </Tooltip>
           </h2>
           <TextField
             variant="standard"
-            label="Enum Name"
+            label="Nombre de la Enumeración"
             value={name}
             onChange={(e) => setName(e.target.value)}
             fullWidth
@@ -130,7 +144,7 @@ function EnumModal({ open, handleClose, id, data }: EnumModalProps) {
               sx={{ borderBottom: 1, borderColor: 'divider', paddingTop: 2.5 }}
             >
               <TabList aria-label="add properties to enum">
-                <Tab label="Values" value="1" />
+                <Tab label="Valores" value="1" />
               </TabList>
             </Box>
             <TabPanel value="1" sx={{ padding: 0, paddingTop: '1em' }}>
@@ -140,13 +154,13 @@ function EnumModal({ open, handleClose, id, data }: EnumModalProps) {
         </div>
         <div className="buttons">
           <Button variant="text" onClick={close} disabled={loading}>
-            Cancel
+            Cancelar
           </Button>
           <Button variant="text" type="submit" disabled={loading}>
-            OK
+            Aceptar
           </Button>
         </div>
-      </form>
+      </Paper>
     </Modal>
   );
 }

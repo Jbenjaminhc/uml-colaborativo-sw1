@@ -14,6 +14,9 @@ const entity_1 = __importDefault(require("./routes/entity"));
 const enums_1 = __importDefault(require("./routes/enums"));
 const interfaces_1 = __importDefault(require("./routes/interfaces"));
 const relationship_1 = __importDefault(require("./routes/relationship"));
+const collaborator_routes_1 = __importDefault(require("./routes/collaborator.routes"));
+const export_routes_1 = __importDefault(require("./routes/export.routes"));
+const user_routes_1 = __importDefault(require("./routes/user.routes"));
 const app = (0, express_1.default)();
 // Middleware
 const corsOptions = {
@@ -32,6 +35,9 @@ app.use('/api/interface', interfaces_1.default);
 app.use('/api/enum', enums_1.default);
 app.use('/api/entity', entity_1.default);
 app.use('/api/relationship', relationship_1.default);
+app.use('/api/diagram/:diagramId/collaborators', collaborator_routes_1.default);
+app.use('/api/diagram/:diagramId/export', export_routes_1.default);
+app.use('/api/user', user_routes_1.default);
 app.get('/', (req, res) => {
     res.send('Hello World from UML2Code Server!');
 });

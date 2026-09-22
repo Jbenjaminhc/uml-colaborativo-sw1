@@ -2,7 +2,7 @@
 import { Autocomplete, TextField } from '@mui/material';
 import { DataType } from '../../../types';
 
-export const types: DataType[] = [
+export const attributeTypes: DataType[] = [
   'int',
   'float',
   'long',
@@ -10,6 +10,19 @@ export const types: DataType[] = [
   'char',
   'boolean',
   'string',
+  'date',
+  'datetime',
+];
+
+export const returnTypes: DataType[] = [
+  'int',
+  'float',
+  'long',
+  'double',
+  'char',
+  'boolean',
+  'string',
+  'void',
 ];
 
 type TypeSelectProps = {
@@ -22,7 +35,7 @@ function TypeSelect({ option, setOption }: TypeSelectProps) {
     <Autocomplete
       id="type-select"
       freeSolo
-      options={types}
+      options={attributeTypes}
       value={option}
       onInputChange={(e, value) => {
         setOption(value as DataType);

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateRelationshipHandleUpdate = exports.validateRelationship = exports.validateDuplicateRelationship = exports.reformatRelationship = void 0;
 /* eslint-disable @typescript-eslint/no-use-before-define */
 const lodash_pick_1 = __importDefault(require("lodash.pick"));
+const mongoose_1 = require("mongoose");
 const zod_1 = require("zod");
 const diagram_model_1 = require("../models/diagram.model");
 const entity_model_1 = require("../models/entity.model");
@@ -74,14 +75,25 @@ const validateSourceAndTarget = async (sourceName, targetName, diagramId, relati
         targetEntity = await entity_model_1.EntityModel.findById(targetName);
     }
     else {
-        sourceEntity = await entity_model_1.EntityModel.findOne({
-            diagramId,
-            'data.name': sourceName,
-        });
-        targetEntity = await entity_model_1.EntityModel.findOne({
-            diagramId,
-            'data.name': targetName,
-        });
+        // If the frontend provided IDs instead of names (e.g. during Undo operations)
+        if ((0, mongoose_1.isValidObjectId)(sourceName)) {
+            sourceEntity = await entity_model_1.EntityModel.findOne({ diagramId, _id: sourceName });
+        }
+        if (!sourceEntity) {
+            sourceEntity = await entity_model_1.EntityModel.findOne({
+                diagramId,
+                'data.name': sourceName,
+            });
+        }
+        if ((0, mongoose_1.isValidObjectId)(targetName)) {
+            targetEntity = await entity_model_1.EntityModel.findOne({ diagramId, _id: targetName });
+        }
+        if (!targetEntity) {
+            targetEntity = await entity_model_1.EntityModel.findOne({
+                diagramId,
+                'data.name': targetName,
+            });
+        }
     }
     if (!sourceEntity || !targetEntity) {
         throw new Error('Invalid source or target');

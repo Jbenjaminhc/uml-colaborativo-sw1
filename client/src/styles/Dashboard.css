@@ -3,13 +3,83 @@
   flex-direction: column;
   align-items: center;
   height: 100vh;
-  margin: 3rem;
-  width: 1200px;
+  margin: 3rem auto;
+  width: 90%;
+  max-width: 1200px;
 }
 
 .dashboard-title {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  width: 80%;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.diagram-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  margin-bottom: 3rem;
+}
+
+.diagram-card {
+  border-radius: 16px !important;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.diagram-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
+}
+
+.diagram-card-cover {
+  height: 140px;
+  background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  position: relative;
+}
+
+/* Gradients alternatives based on nth-child or generated randomly by react */
+.cover-gradient-1 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+.cover-gradient-2 { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
+.cover-gradient-3 { background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%); }
+.cover-gradient-4 { background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); }
+
+.diagram-card-content {
+  padding: 1.25rem !important;
+  flex-grow: 1;
+}
+
+.diagram-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0.5rem 0.5rem !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard {
+    width: 95%;
+    margin: 2rem auto;
+  }
+  .dashboard-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .diagram-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
 }

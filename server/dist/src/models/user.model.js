@@ -8,6 +8,7 @@ const userSchema = zod_1.z.object({
     email: zod_1.z.string().email(),
     password: zod_1.z.string().min(8),
     verified: zod_1.z.boolean().default(false),
+    role: zod_1.z.enum(['user', 'admin']).default('user'),
     createdAt: zod_1.z.date().optional(),
     updatedAt: zod_1.z.date().optional(),
 });
@@ -30,6 +31,11 @@ const schema = new mongoose_1.Schema({
     verified: {
         type: Boolean,
         default: false,
+    },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user',
     },
 }, { timestamps: true });
 const UserModel = (0, mongoose_1.model)('User', schema);

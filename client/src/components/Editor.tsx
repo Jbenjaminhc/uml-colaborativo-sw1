@@ -9,7 +9,13 @@ import AddNewSpeedDial from './AddNewSpeedDial';
 import { AlertType } from './alert/AlertContext';
 import useAlert from './alert/useAlert';
 import DiagramEditor from './diagram/DiagramEditor';
+import { ReactFlowProvider } from 'reactflow';
+import { SocketProvider } from '../context/SocketContext';
+import { HistoryProvider } from '../context/HistoryContext';
+import ActiveUsersIndicator from './ActiveUsersIndicator';
 import Header from './header/Header';
+
+import ChatPanel from './chat/ChatPanel';
 
 function Editor() {
   // interceptor that adds auth token to every request
@@ -17,6 +23,7 @@ function Editor() {
   axios.defaults.headers.common.Authorization = `Bearer ${authToken}`;
 
   const [diagram, setDiagram] = useState<DiagramContents>();
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const { diagramId } = useParams();
   const { setAlert } = useAlert();
@@ -52,18 +59,30 @@ function Editor() {
   return (
     <EntitiesProvider>
       <RelationshipsProvider>
-        <div className="page">
-          <Header
-            name={diagram?.name}
-            isEditor
-            handleRename={handleRenameDiagram}
-          />
-          <AddNewSpeedDial />
-          <DiagramEditor
-            ent={diagram?.entities || []}
-            rel={diagram?.relationships || []}
-          />
-        </div>
+        <SocketProvider diagramId={diagramId}>
+          <HistoryProvider>
+            <div className="page">
+              <Header
+                name={diagram?.name}
+                isEditor
+                handleRename={handleRenameDiagram}
+                onToggleChat={() => setIsChatOpen(!isChatOpen)}
+                isChatOpen={isChatOpen}
+              >
+                <ActiveUsersIndicator />
+              </Header>
+              <ChatPanel open={isChatOpen} onClose={() => setIsChatOpen(false)} />
+              <AddNewSpeedDial />
+              <ReactFlowProvider>
+                <DiagramEditor
+                  ent={diagram?.entities || []}
+                  rel={diagram?.relationships || []}
+                  name={diagram?.name}
+                />
+              </ReactFlowProvider>
+            </div>
+          </HistoryProvider>
+        </SocketProvider>
       </RelationshipsProvider>
     </EntitiesProvider>
   );

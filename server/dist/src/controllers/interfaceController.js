@@ -12,6 +12,8 @@ const createInterface = async (data, diagramId) => {
     }
     try {
         const entity = new entity_model_1.EntityModel({
+            ...(data.id ? { _id: data.id } : {}),
+            ...(data.position ? { position: data.position } : {}),
             diagramId,
             type: 'interface',
             data: {

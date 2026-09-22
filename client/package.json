@@ -19,15 +19,18 @@
     "@mui/lab": "^5.0.0-alpha.127",
     "@mui/material": "^5.12.1",
     "axios": "^1.4.0",
+    "dagre": "^0.8.5",
     "html-to-image": "^1.11.11",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.10.0",
-    "reactflow": "^11.7.0"
+    "reactflow": "^11.7.0",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^14.0.0",
+    "@types/dagre": "^0.7.54",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@types/react-router-dom": "^5.3.3",

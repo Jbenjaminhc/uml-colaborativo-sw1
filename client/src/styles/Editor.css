@@ -1,4 +1,10 @@
 .diagram {
   width: 100%;
-  height: calc(100% - 50px);
+  height: calc(100% - 60px);
+}
+
+@media (max-width: 600px) {
+  .react-flow__controls {
+    margin-bottom: 80px !important;
+  }
 }

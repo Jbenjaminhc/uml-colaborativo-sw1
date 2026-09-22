@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { memo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { NodeProps } from 'reactflow';
+import { NodeProps, useReactFlow } from 'reactflow';
 import { useEntitiesDispatch } from '../../../context/EntitiesContext';
 import '../../../styles/Node.css';
 import { Attribute, Constant, Klass, Method } from '../../../types';
@@ -10,12 +10,18 @@ import useAlert from '../../alert/useAlert';
 import ClassModal from '../../forms/modals/ClassModal';
 import Handles from './Handles';
 import NodeToolBarCustom from './NodeToolBarCustom';
+import { useSocket } from '../../../context/SocketContext';
+
+import { Paper, useTheme } from '@mui/material';
 
 export function ClassNodeView({ data }: { data: Klass }) {
+  const theme = useTheme();
+  const bgColor = theme.palette.mode === 'dark' ? '#12263a' : '#D4F1F4';
+
   return (
     <>
       <Handles />
-      <div className="node" style={{ backgroundColor: '#D4F1F4' }}>
+      <Paper className="node" style={{ backgroundColor: bgColor }} elevation={3}>
         <div className="node-header">
           {data.isAbstract && (
             <div className="node-supertitle">{'<abstract>'}</div>
@@ -49,7 +55,7 @@ export function ClassNodeView({ data }: { data: Klass }) {
               ))}
           </div>
         </div>
-      </div>
+      </Paper>
     </>
   );
 }
@@ -57,17 +63,17 @@ export function ClassNodeView({ data }: { data: Klass }) {
 function ClassNode({ id, data }: NodeProps<Klass>) {
   const [editOpen, setEditOpen] = useState(false);
   const entitiesDispatch = useEntitiesDispatch();
+  const { emitEntityDeleted } = useSocket();
 
   const { setAlert } = useAlert();
   const { diagramId } = useParams();
 
-  const handleDelete = async () => {
-    try {
-      await axios.delete(`/api/entity/${id}?diagramId=${diagramId}`);
-      entitiesDispatch({ type: 'DELETE_ENTITY', id });
-      setAlert('Class successfully deleted', AlertType.SUCCESS);
-    } catch (e) {
-      setAlert('Could not delete class. Try again', AlertType.ERROR);
+  const { deleteElements, getNode } = useReactFlow();
+
+  const handleDelete = () => {
+    const node = getNode(id);
+    if (node) {
+      deleteElements({ nodes: [node] });
     }
   };
 

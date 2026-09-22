@@ -20,24 +20,26 @@ function NodeToolBarCustom({ setEditOpen, handleDelete }: Props) {
 
   return (
     <NodeToolbar className="node-toolbar">
-      <Tooltip title="Edit" placement="left">
+      <Tooltip title="Editar" placement="top">
         <IconButton
           aria-label="edit"
           color="primary"
+          size="small"
           onClick={() => setEditOpen(true)}
           disabled={loading}
         >
-          <EditIcon fontSize="large" />
+          <EditIcon fontSize="small" />
         </IconButton>
       </Tooltip>
-      <Tooltip title="Delete" placement="right">
+      <Tooltip title="Eliminar" placement="top">
         <IconButton
           aria-label="delete"
           color="error"
+          size="small"
           onClick={handleDeleteLoading}
           disabled={loading}
         >
-          <DeleteIcon fontSize="large" />
+          <DeleteIcon fontSize="small" />
         </IconButton>
       </Tooltip>
     </NodeToolbar>

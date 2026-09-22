@@ -42,7 +42,7 @@ function MethodField({ method, updateMethod, removeMethod }: MethodFieldProps) {
           }
         />
         <TextField
-          label="Name"
+          label="Nombre"
           variant="standard"
           value={method.name}
           onChange={(e) =>
@@ -58,7 +58,7 @@ function MethodField({ method, updateMethod, removeMethod }: MethodFieldProps) {
           sx={{ width: 270 }}
         />
         <GroupSelect
-          label="Returns"
+          label="Retorna"
           option={method.returnType}
           setOption={(newType) =>
             updateMethod(
@@ -70,13 +70,13 @@ function MethodField({ method, updateMethod, removeMethod }: MethodFieldProps) {
             )
           }
           width={150}
-          includePrimitives
+          primitiveType="return"
           includeClasses
           includeInterfaces
           includeEnums
         />
         <FormControlLabel
-          label="Static"
+          label="Estático"
           control={
             <Checkbox
               checked={method.isStatic}
@@ -93,7 +93,7 @@ function MethodField({ method, updateMethod, removeMethod }: MethodFieldProps) {
           }
         />
       </div>
-      <Tooltip title="Delete" placement="right">
+      <Tooltip title="Eliminar" placement="right">
         <IconButton
           className="remove-button"
           aria-label="delete method"
@@ -168,7 +168,7 @@ function MethodsInput({ methods, setMethods }: MethodsInputProps) {
         );
       })}
       <Button variant="text" startIcon={<AddRoundedIcon />} onClick={addMethod}>
-        Add
+        Añadir
       </Button>
     </div>
   );

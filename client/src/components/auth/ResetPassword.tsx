@@ -1,5 +1,5 @@
 import LoadingButton from '@mui/lab/LoadingButton';
-import { TextField, Typography } from '@mui/material';
+import { TextField, Typography, Paper, Box, useTheme } from '@mui/material';
 import axios from 'axios';
 import { useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -15,6 +15,7 @@ function ResetPassword() {
   const [success, setSuccess] = useState(false);
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const theme = useTheme();
   setDocumentTitle('Reset Password');
 
   const handleReset = async (event: React.FormEvent) => {
@@ -24,7 +25,7 @@ function ResetPassword() {
     try {
       if (password.current?.value !== password2.current?.value) {
         setError(true);
-        setErrorMessage('Passwords do not match');
+        setErrorMessage('Las contraseñas no coinciden');
         setLoading(false);
         return;
       }
@@ -42,50 +43,70 @@ function ResetPassword() {
   };
 
   return (
-    <div className="start-menu">
-      <div>
-        <img src={logo} className="logo" alt="logo" />
-      </div>
-      <Typography variant="h5">Reset password</Typography>
-      <form className="start-form" onSubmit={handleReset}>
-        <TextField
-          inputRef={password}
-          label="Password"
-          variant="standard"
-          type="password"
-          fullWidth
-          required
-          error={error}
-          helperText={error ? errorMessage : ''}
-        />
-        <TextField
-          inputRef={password2}
-          label="Re-enter Password"
-          variant="standard"
-          type="password"
-          fullWidth
-          required
-          error={error}
-        />
-        <LoadingButton
-          type="submit"
-          variant="contained"
-          size="large"
-          fullWidth
-          loading={loading}
-          loadingIndicator="Loading…"
-          disabled={success}
-        >
-          Reset
-        </LoadingButton>
-      </form>
-      <Link to="/login">Back to login</Link>
-      {success && (
-        <Typography variant="subtitle1">
-          Password reset successfully.
-        </Typography>
-      )}
-    </div>
+    <Box className="auth-page" sx={{ backgroundColor: 'background.default' }}>
+      <Paper className="start-menu" elevation={3}>
+        <div>
+          <img src={logo} className="logo" alt="UML2Code Logo" />
+          <Typography variant="h5" fontWeight="bold" sx={{ mt: 1, mb: 1 }}>
+            Restablecer contraseña
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Ingresa tu nueva contraseña a continuación.
+          </Typography>
+        </div>
+        
+        {success ? (
+          <div style={{ padding: '1rem', backgroundColor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.1)' : '#e8f5e9', borderRadius: '12px', color: theme.palette.mode === 'dark' ? '#81c784' : '#2e7d32', width: '100%', marginBottom: '1rem' }}>
+            <Typography variant="subtitle1" fontWeight="bold">
+              ¡Contraseña actualizada!
+            </Typography>
+            <Typography variant="body2">
+              Tu contraseña ha sido restablecida exitosamente.
+            </Typography>
+          </div>
+        ) : (
+          <form className="start-form" onSubmit={handleReset}>
+            <TextField
+              inputRef={password}
+              label="Nueva Contraseña"
+              variant="outlined"
+              type="password"
+              fullWidth
+              required
+              error={error}
+              helperText={error ? errorMessage : ''}
+              InputProps={{ sx: { borderRadius: '12px' } }}
+            />
+            <TextField
+              inputRef={password2}
+              label="Reingresar Contraseña"
+              variant="outlined"
+              type="password"
+              fullWidth
+              required
+              error={error}
+              InputProps={{ sx: { borderRadius: '12px' } }}
+            />
+            <LoadingButton
+              type="submit"
+              variant="contained"
+              size="large"
+              fullWidth
+              loading={loading}
+              loadingIndicator="Cargando…"
+              disabled={success}
+              sx={{ borderRadius: '12px', py: 1.2, mt: 1, textTransform: 'none', fontSize: '1.05rem', fontWeight: 'bold' }}
+            >
+              Restablecer contraseña
+            </LoadingButton>
+          </form>
+        )}
+        
+        <Link to="/login" style={{ color: theme.palette.primary.main, textDecoration: 'none', fontWeight: 500, marginTop: '1rem' }}>
+          Volver al inicio de sesión
+        </Link>
+      </Paper>
+    </Box>
   );
 }
 

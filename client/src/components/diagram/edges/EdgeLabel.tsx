@@ -5,7 +5,11 @@ type EdgeLabelProps = {
   y: number;
 };
 
+import { useTheme } from '@mui/material/styles';
+
 function EdgeLabel({ position, label, x, y }: EdgeLabelProps) {
+  const theme = useTheme();
+
   const getTransform = (pos: string) => {
     switch (pos) {
       case 'middle':
@@ -25,7 +29,7 @@ function EdgeLabel({ position, label, x, y }: EdgeLabelProps) {
         position: 'absolute',
         background: 'transparent',
         padding: 10,
-        color: 'black',
+        color: theme.palette.text.primary,
         fontSize: 14,
         fontWeight: 700,
         transform: getTransform(position),
