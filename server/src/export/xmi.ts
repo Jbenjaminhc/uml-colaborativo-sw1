@@ -542,7 +542,7 @@ export function generateXmiContent(
       dstEndId,
       assocId,
       toXmiId(rel.target),
-      aggType,
+      'none',
       parseMultiplicity(rel.data?.tgtMultiplicity || '')
     );
 
@@ -718,11 +718,11 @@ export function generateXmiContent(
     let sourceAgg = 'none';
     let targetAgg = 'none';
     if (rel.type === 'Composition') {
-      sourceAgg = isInverted ? 'none' : 'composite';
-      targetAgg = isInverted ? 'composite' : 'none';
+      sourceAgg = isInverted ? 'composite' : 'none';
+      targetAgg = isInverted ? 'none' : 'composite';
     } else if (rel.type === 'Aggregation') {
-      sourceAgg = isInverted ? 'none' : 'shared';
-      targetAgg = isInverted ? 'shared' : 'none';
+      sourceAgg = isInverted ? 'shared' : 'none';
+      targetAgg = isInverted ? 'none' : 'shared';
     }
 
     // Determine multiplicities
